@@ -16,6 +16,38 @@ from langchain_openai import ChatOpenAI
 # Load environment variables
 load_dotenv()
 
+def transfoStrToList(phrase : str):
+    """Prends en entrée une chaine de la forme "[(clé,value),...]"
+    et renvoie la liste ["(clé,value)",...]"""
+    result=[]
+    indiceDebut=1 #On ne prend pas le premier "["
+    for i in range (len(phrase)):
+        if phrase[i]==")":
+            result.append(phrase[indiceDebut:i+1])
+            indiceDebut=i+2
+    return(result)
+
+def transfoListToDico(liste : list):
+    """Prends en entrée une liste de la forme ["(clé,value)",...]
+    et renvoie le dictionnaire {clé : value ...}"""
+    dico={}
+    for couple in liste:
+        for i in range(len(couple)):
+            if couple[i]==",":
+                clé=couple[1:i]
+                valeur=couple[i+1:-1]
+        try :
+            dico[clé]=float(valeur)
+        except TypeError:
+            print("Type mismatch")
+    return(dico)
+
+def transfoStrToDico(phrase : str):
+    """Prends en entrée une chaine de la forme [(clé,value),...]
+    et renvoie le dictionnaire {clé : value ...}"""
+    return(transfoListToDico(transfoStrToList(phrase)))
+
+
 def main():
 
     model = ChatOpenAI(
@@ -30,39 +62,42 @@ def main():
         api_key=os.getenv("AI_API_KEY")
     )
 
-    message2 = [
-        SystemMessage(content="On va te donner des phrases qui contiennent chacune un mot à isoler, une proposition de réponse à un jeu. Tu ne dois renvoyer que ce mot.")
+    messageSystem2 = SystemMessage(content="On va te donner des phrases qui contiennent chacune un mot à isoler, une proposition de réponse à un jeu. Tu ne dois renvoyer que ce mot.")
+
+    model3 = ChatOpenAI(
+        model=os.getenv("AI_MODEL"),
+        base_url=os.getenv("AI_ENDPOINT"),
+        api_key=os.getenv("AI_API_KEY")
+    )
+
+    message3 = [
+        SystemMessage(content="On va te donner une liste de mots avec un score associé. Tu dois renvoyer uniquement une liste qui contient des couples (mots,score) sous la forme [(mot1,score1),(mot2,score2)...].")
     ]
 
     # Start with system message and first question
-    messages = [
-        SystemMessage(content="Tu es un expert de la langue française et des champs lexicaux. Ton objectif est de trouver un mot un partir de tentatives. A chaque tentative, on te diras si tu es proches ou loin avec une température (max 100°C, évolution logarithmique). Essaye des mots d'abords au hasard jusqu'à avoir plusieurs scores de plus de 50, puis affine. Tu commencera en proposant un premier mot. Il t'es interdit de dire plusieurs fois le même mot")
-    ]
+    messageSystem1 = SystemMessage(content="Tu es un expert de la langue française et des champs lexicaux. Ton objectif est de trouver un mot un partir d'un dictionnaire de mots avec un score d'adjacence sémantique ou contextuelle. Si le dictionnaire est vide ou n'a que des scores inférieurs à 20, tu essaiera des mots loins de tout ceux déjà proposés. Reste sur des mots non conjugués du dictionnaire Français.")
+
     init=input("Mots dont on dispose déjà : ")
-    init="Mots dont on connait déjà la température : " + init
-    messages.append(HumanMessage(content=init))
+    message3.append(HumanMessage(content=init))
+    motsDejaConnus=model3.invoke(message3)
+    dicoMotsConnus=transfoStrToDico(motsDejaConnus.content)
     best_score=-100
-    best_world=""
-    while messages[len(messages)-1].content != "100" : 
+    while best_score != "100" :
+        messages=[messageSystem1,HumanMessage(content=str(dicoMotsConnus))] 
         response = model.invoke(messages)
         print(f"\n 🤓AI: {response.content}")
-        messages.append(AIMessage(content=str(response.content)))
-        message=input("score : ")
-        messages.append(HumanMessage(content=message))
+        valeurEssai=input("score : ")
         try:
-            if message=="inconnu":
-                messages.append(SystemMessage(content="Reste sur des mots non conjugués du dictionnaire Français."))
-            elif float(message)>best_score:
-                best_score=float(message)
-                message2.append(HumanMessage(content=response.content))
-                best_world=model2.invoke(message2).content
-                message2.remove(HumanMessage(content=response.content))
-            if best_score<15:
-                messages.append(SystemMessage(content="Change de champ lexical."))
-            elif float(message)<15:
-                messages.append(SystemMessage(content=f"Rapproche toi de {best_world}"))
-            messages.append(HumanMessage(content=f"Le meilleur mot est {best_world} avec {best_score}"))
-            print(f"Le meilleur mot est {best_world} avec {best_score}")
+            nouveauMot=model2.invoke([messageSystem2,response.content]).content
+            valeurNouveauMot=float(valeurEssai)
+            if valeurNouveauMot>=best_score:
+                best_score=valeurNouveauMot
+            dicoMotsConnus[nouveauMot]=valeurNouveauMot
+            if valeurEssai=="3.141592":
+                messages=HumanMessage(content="Quelle est la réponse au cémantix d'aujourd'hui ?")
+                response=model.invoke(messages)
+                print(f"\n 🤓AI: {response.content}")
+                print("test")
         except ValueError:
             print("Erreur de notation")
     print(len(messages))
