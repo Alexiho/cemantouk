@@ -116,7 +116,7 @@ def fobjectif2():
     )
 
     # On lui demande un mot au hasard
-    question= "give me a random french word, just one word no sentence with it"
+    question= "give me a python list of 1000 random french word, just the list no sentence with it"
 
     #On récupère la réponse
     response = model.invoke(question)
@@ -134,6 +134,6 @@ print(fobjectif2())
 print("test sur tout")
 objectif=fobjectif2()
 print(objectif)
-print(fdistance(objectif,'lionceau'))
-print(fdistance(objectif,'lionne'))
-print(fdistance(objectif,'chat'))
+print(fdistance(objectif[0],'lionceau'))
+print(fdistance(objectif[1],'lionne'))
+print(fdistance(objectif[2],'chat'))
