@@ -15,6 +15,7 @@ def main():
     # 1. On initialise le bot
     print("Démarrage du test...")
     mon_bot = CemantixBot()
+    historique_essais = {}
 
     with open("system_msg_v2.txt", "r", encoding="utf-8") as f:
         contenu = f.read()
