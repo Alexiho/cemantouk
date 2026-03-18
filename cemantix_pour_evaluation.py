@@ -116,7 +116,7 @@ def fobjectif2():
         model=os.getenv("AI_MODEL"),
         base_url=os.getenv("AI_ENDPOINT"),
         api_key=os.getenv("AI_API_KEY"),
-        temperature=1.2
+        temperature=1.5
     )
 
     # On lui demande une liste pour piocher dedans localement
