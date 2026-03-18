@@ -10,10 +10,9 @@ load_dotenv()
 
 
 def main():
-    print("Multi-Turn Conversation Example\n")
 
     # 1. On initialise le bot
-    print("Démarrage du test...")
+    print("Démarrage du bot...")
     mon_bot = CemantixBot()
     historique_essais = {}
 
@@ -58,9 +57,10 @@ def main():
         historique_essais[response1.content] = score
         messages = [
             SystemMessage(content=contenu),
-            HumanMessage(content=str(historique_essais))
+            HumanMessage(content=str(sorted(historique_essais.items(), key=lambda x: x[1], reverse=True))) # on trie le dictionnaire des essais du plus chaud au plus froid
         ]
-        print(str(historique_essais))
+        #print(str(historique_essais))
+        print(str(sorted(historique_essais.items(), key=lambda x: x[1], reverse=True)))
 
     print(f"📊 Total messages in history: {len(messages)} messages, that include 1 system message, 3 Human messages and 2 AI responses")
 
