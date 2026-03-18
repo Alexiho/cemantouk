@@ -24,7 +24,7 @@ def transfoStrToList(phrase : str):
     for i in range (len(phrase)):
         if phrase[i]==")":
             result.append(phrase[indiceDebut:i+1])
-            indiceDebut=i+2
+            indiceDebut=i+3
     return(result)
 
 def transfoListToDico(liste : list):
@@ -71,33 +71,46 @@ def main():
     )
 
     message3 = [
-        SystemMessage(content="On va te donner une liste de mots avec un score associé. Tu dois renvoyer uniquement une liste qui contient des couples (mots,score) sous la forme [(mot1,score1),(mot2,score2)...].")
+        SystemMessage(content="On va te donner une liste de mots avec un score associé. Tu dois renvoyer uniquement une liste qui contient des couples (mots,score) sous la forme [(mot1,score1),(mot2,score2)...] le tout sans guillemets.")
     ]
 
     # Start with system message and first question
-    messageSystem1 = SystemMessage(content="Tu es un expert de la langue française et des champs lexicaux. Ton objectif est de trouver un mot un partir d'un dictionnaire de mots avec un score d'adjacence sémantique ou contextuelle. Si le dictionnaire est vide ou n'a que des scores inférieurs à 20, tu essaiera des mots loins de tout ceux déjà proposés. Reste sur des mots non conjugués du dictionnaire Français.")
+    messageSystem1 = SystemMessage(content="""Tu es un expert de la langue française et des champs lexicaux. Ton objectif est de 
+                                   trouver un mot à partir d'un dictionnaire de mots avec un score d'adjacence sémantique ou contextuelle.
+                                   Il faut atteindre un score de 100. 
+                                   Si le dictionnaire est vide ou n'a que des scores inférieurs à 20, tu essaiera des mots loins de ceux 
+                                   déjà proposés (tu tenteras quand même de te rapprocher des mots avec des bons scores). Reste sur des mots non conjugués 
+                                   du dictionnaire Français. Ne redonne jamais un mot dont tu connais la valeur""")
 
     init=input("Mots dont on dispose déjà : ")
     message3.append(HumanMessage(content=init))
     motsDejaConnus=model3.invoke(message3)
     dicoMotsConnus=transfoStrToDico(motsDejaConnus.content)
     best_score=-100
-    while best_score != "100" :
+    while best_score != 100 :
         messages=[messageSystem1,HumanMessage(content=str(dicoMotsConnus))] 
         response = model.invoke(messages)
         print(f"\n 🤓AI: {response.content}")
+        nouveauMot=model2.invoke([messageSystem2,response.content]).content
+        print(f"\n {nouveauMot}")
         valeurEssai=input("score : ")
         try:
-            nouveauMot=model2.invoke([messageSystem2,response.content]).content
+            if valeurEssai=="dico":
+                print(dicoMotsConnus)
+                valeurEssai=dicoMotsConnus[nouveauMot]
+            elif valeurEssai=="quit":
+                break
+            elif valeurEssai=="3.141592":
+                print("test")
+                messages=HumanMessage(content="1+1 ?")
+                response=model.invoke(messages)
+                print(response)
+                print(f"\n 🤓AI: {response.content}")
+                break
             valeurNouveauMot=float(valeurEssai)
             if valeurNouveauMot>=best_score:
                 best_score=valeurNouveauMot
             dicoMotsConnus[nouveauMot]=valeurNouveauMot
-            if valeurEssai=="3.141592":
-                messages=HumanMessage(content="Quelle est la réponse au cémantix d'aujourd'hui ?")
-                response=model.invoke(messages)
-                print(f"\n 🤓AI: {response.content}")
-                print("test")
         except ValueError:
             print("Erreur de notation")
     print(len(messages))
