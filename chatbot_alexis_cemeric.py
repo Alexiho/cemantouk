@@ -40,10 +40,11 @@ def main():
     
     message_utilisateur = ""
 
+    historique_trié=[(0,0)]
     # Trier les mots du plus chaud au plus froid
     #classement = sorted(historique_essais.items(), key=lambda x: x[1], reverse=True)
     listScores=[]
-    while(message_utilisateur != "quit" or historique_trié[0]!=1):
+    while(message_utilisateur != "quit" and historique_trié[0][1]!=1):
         print(f"Test du mot : {dernier_message}")
         score = fdistance(objectif, dernier_message)
         listScores.append(score)
@@ -59,6 +60,7 @@ def main():
         historique_essais[response1.content] = score
 
         historique_trié = sorted(historique_essais.items(), key=lambda x: x[1], reverse=True)
+
         messages = [
             SystemMessage(content=contenu),
             HumanMessage(content=str(historique_trié)) # on trie le dictionnaire des essais du plus chaud au plus froid
