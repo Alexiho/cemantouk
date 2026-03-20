@@ -3,7 +3,9 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from dotenv import load_dotenv
 import os
+import matplotlib.pyplot as plt
 from cemantix_pour_evaluation import *
+
 
 # 2. Load environment variables
 load_dotenv()
@@ -38,11 +40,12 @@ def main():
 
     # Trier les mots du plus chaud au plus froid
     #classement = sorted(historique_essais.items(), key=lambda x: x[1], reverse=True)
-
+    listScores=[]
     while(dernier_message != "quit"):
 
         print(f"Test du mot : {dernier_message}")
         score = fdistance(objectif, dernier_message)
+        listScores.append(score)
         print(f"Score reçu : {score}")
 
         # First exchange
@@ -63,7 +66,8 @@ def main():
         print(str(sorted(historique_essais.items(), key=lambda x: x[1], reverse=True)))
 
     print(f"📊 Total messages in history: {len(messages)} messages, that include 1 system message, 3 Human messages and 2 AI responses")
-
+    plt.plot(listScores)
+    plt.show()
 
 if __name__ == "__main__":
     main()
