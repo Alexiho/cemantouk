@@ -4,7 +4,7 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from dotenv import load_dotenv
 import os
 import matplotlib.pyplot as plt
-from cemantix_pour_evaluation import *
+from cemantix_bot_local import *
 
 
 # 2. Load environment variables
