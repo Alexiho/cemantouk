@@ -37,33 +37,35 @@ def main():
     ]
 
     dernier_message = "maison"
+    
+    message_utilisateur = ""
 
     # Trier les mots du plus chaud au plus froid
     #classement = sorted(historique_essais.items(), key=lambda x: x[1], reverse=True)
     listScores=[]
-    while(dernier_message != "quit"):
-
+    while(message_utilisateur != "quit" or historique_trié[0]!=1):
         print(f"Test du mot : {dernier_message}")
         score = fdistance(objectif, dernier_message)
         listScores.append(score)
         print(f"Score reçu : {score}")
 
         # First exchange
-        dernier_message = input("You :")
+        message_utilisateur = input("You :")
         #messages.append(HumanMessage(content=dernier_message))
         response1 = model.invoke(messages)
         print(f"\nAI: {response1.content}")
         dernier_message = response1.content
 
-        
-
         historique_essais[response1.content] = score
+
+        historique_trié = sorted(historique_essais.items(), key=lambda x: x[1], reverse=True)
         messages = [
             SystemMessage(content=contenu),
-            HumanMessage(content=str(sorted(historique_essais.items(), key=lambda x: x[1], reverse=True))) # on trie le dictionnaire des essais du plus chaud au plus froid
+            HumanMessage(content=str(historique_trié)) # on trie le dictionnaire des essais du plus chaud au plus froid
         ]
         #print(str(historique_essais))
         print(str(sorted(historique_essais.items(), key=lambda x: x[1], reverse=True)))
+       
 
     print(f"📊 Total messages in history: {len(messages)} messages, that include 1 system message, 3 Human messages and 2 AI responses")
     plt.plot(listScores)
