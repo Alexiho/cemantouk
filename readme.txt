@@ -1,3 +1,5 @@
+Le code à lancer est le chatbot_final.py
+
     ### Step 1: Install Python
 
     You'll need **Python 3.10 or higher** to run LangChain v1 applications.
